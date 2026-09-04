@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BMK-Export – Schema zu Thermotransferdrucker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#D9DEDA;
+  --sheet:#FAFBF9;
+  --sheet-2:#F0F2EE;
+  --ink:#17201C;
+  --ink-2:#5C6862;
+  --rule:#C2C9C3;
+  --rule-2:#E1E5E0;
+  --green:#00722F;
+  --green-soft:#E2EFE5;
+  --amber:#8F5E00;
+  --red:#9E2020;
+  --tape:#EFEADB;
+  --tape-edge:#D8D0BB;
+  --focus:#00722F;
+  font-size:16px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace}
+a{color:var(--green)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+
+/* ---------- Kopf ---------- */
+header.top{
+  border-bottom:1px solid var(--rule);
+  background:var(--sheet);
+  padding:18px 24px 0;
+}
+.top-inner{max-width:1500px;margin:0 auto}
+h1{
+  font-size:22px;font-weight:600;letter-spacing:-.01em;margin:0 0 2px;
+}
+.sub{color:var(--ink-2);margin:0 0 16px;max-width:62ch}
+.strip-wrap{
+  display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;
+  padding-bottom:16px;
+}
+.strip{
+  display:flex;gap:2px;padding:7px;background:var(--sheet-2);
+  border:1px solid var(--rule);border-radius:2px;overflow:hidden;min-height:62px;align-items:center;
+}
+.marker{
+  width:64px;height:46px;background:var(--tape);border:1px solid var(--tape-edge);
+  border-radius:1px;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 1px 0 #fff inset;
+  padding:2px;
+}
+.marker span{
+  font-family:"IBM Plex Mono",monospace;font-size:9.5px;line-height:1.25;
+  display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.marker span.l1{font-weight:600}
+.marker span.l2{color:#4A5450}
+.strip.empty{color:var(--ink-2);font-size:13px;padding:20px 16px;display:block}
+.counts{display:flex;gap:26px;padding-bottom:6px}
+.count b{display:block;font-size:26px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums}
+.count span{color:var(--ink-2);font-size:12.5px}
+
+/* ---------- Layout ---------- */
+main{max-width:1500px;margin:0 auto;padding:20px 24px 60px;display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start}
+@media (max-width:1050px){main{grid-template-columns:1fr}}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:2px}
+.panel + .panel{margin-top:16px}
+.panel h2{
+  font-size:13px;font-weight:600;margin:0;padding:11px 14px;border-bottom:1px solid var(--rule-2);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.panel .body{padding:14px}
+.field{margin-bottom:12px}
+.field:last-child{margin-bottom:0}
+label.lbl{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:4px}
+input[type=text],input[type=number],select,textarea{
+  width:100%;padding:6px 8px;background:#fff;border:1px solid var(--rule);border-radius:2px;
+}
+textarea{resize:vertical;min-height:72px}
+.row2{display:flex;gap:8px}
+.row2 > *{flex:1;min-width:0}
+.check{display:flex;gap:8px;align-items:flex-start;margin:7px 0;cursor:pointer}
+.check input{margin:3px 0 0}
+.check span{font-size:13px}
+.hint{font-size:12px;color:var(--ink-2);margin:6px 0 0}
+.warn{background:#FBF3E0;border:1px solid #E4D2A6;color:var(--amber);padding:8px 10px;border-radius:2px;font-size:12.5px;margin-top:10px}
+.err{background:#FBE9E9;border:1px solid #E7BEBE;color:var(--red);padding:8px 10px;border-radius:2px;font-size:12.5px;margin-top:10px}
+
+/* ---------- Buttons ---------- */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:7px 12px;border:1px solid var(--rule);background:#fff;border-radius:2px;cursor:pointer;
+  font-size:13px;font-weight:500;
+}
+.btn:hover{background:var(--sheet-2)}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.primary:hover{background:#00602A}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.sm{padding:4px 8px;font-size:12px}
+
+/* ---------- Dropzone ---------- */
+.drop{
+  border:1px dashed var(--rule);border-radius:2px;background:var(--sheet-2);
+  padding:18px 14px;text-align:center;cursor:pointer;
+}
+.drop.over{border-color:var(--green);background:var(--green-soft)}
+.drop svg{display:block;margin:0 auto 8px}
+.drop b{font-size:13.5px;font-weight:600;display:block}
+.drop small{color:var(--ink-2)}
+.filelist{margin:10px 0 0;padding:0;list-style:none;font-size:12.5px}
+.filelist li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-top:1px solid var(--rule-2)}
+.filelist li span:last-child{color:var(--ink-2);white-space:nowrap}
+.bar{height:3px;background:var(--rule-2);border-radius:2px;overflow:hidden;margin-top:10px;display:none}
+.bar.on{display:block}
+.bar i{display:block;height:100%;background:var(--green);width:0%;transition:width .18s}
+
+/* ---------- Tabelle ---------- */
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-bottom:1px solid var(--rule-2)}
+.toolbar input[type=text]{width:190px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;padding:10px 14px;border-bottom:1px solid var(--rule-2)}
+.chip{
+  border:1px solid var(--rule);background:#fff;border-radius:2px;padding:3px 8px;font-size:12px;cursor:pointer;
+  display:inline-flex;gap:6px;align-items:center;
+}
+.chip.on{background:var(--green-soft);border-color:#9CC4A9}
+.chip b{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.chip i{font-style:normal;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.tablewrap{overflow:auto;max-height:calc(100vh - 240px)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{
+  position:sticky;top:0;background:var(--sheet);text-align:left;font-weight:600;font-size:12px;
+  padding:8px 10px;border-bottom:1px solid var(--rule);white-space:nowrap;z-index:2;
+}
+td{padding:4px 10px;border-bottom:1px solid var(--rule-2);vertical-align:middle}
+tr.off td{opacity:.4}
+tr:hover td{background:var(--sheet-2)}
+td.bmk{font-family:"IBM Plex Mono",monospace;font-weight:600;white-space:nowrap}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+td input[type=text]{padding:3px 6px;font-size:12.5px}
+td input[type=number]{padding:3px 6px;width:64px;font-size:12.5px;text-align:right}
+td.pages{color:var(--ink-2);font-size:12px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty-state{padding:44px 24px;text-align:center;color:var(--ink-2)}
+.empty-state b{display:block;color:var(--ink);font-size:14px;margin-bottom:4px}
+.tblfoot{padding:9px 14px;border-top:1px solid var(--rule-2);color:var(--ink-2);font-size:12.5px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+td select{padding:3px 4px;font-size:12.5px;max-width:150px}
+td.bmk button.exp{
+  border:1px solid var(--rule);background:#fff;border-radius:2px;width:18px;height:18px;
+  line-height:1;padding:0;cursor:pointer;font-size:12px;margin-right:6px;color:var(--ink-2);
+}
+td.bmk button.exp.on{background:var(--green-soft);border-color:#9CC4A9;color:var(--green)}
+tr.detail td{background:var(--sheet-2);padding:10px 14px 12px}
+tr.detail:hover td{background:var(--sheet-2)}
+.seqedit{display:flex;gap:14px;flex-wrap:wrap;align-items:flex-start}
+.seqedit textarea{min-width:210px;max-width:260px;min-height:104px;font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.seqcol{flex:1;min-width:230px}
+.quick{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.quick button{
+  border:1px solid var(--rule);background:#fff;border-radius:2px;padding:2px 7px;font-size:12px;cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;
+}
+.quick button:hover{background:var(--green-soft);border-color:#9CC4A9}
+.quick button.txt{font-family:inherit}
+.seqprev{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
+.seqprev .marker{width:52px;height:38px}
+.matrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.matrow b{font-family:"IBM Plex Mono",monospace;width:26px;flex:none}
+.matrow small{color:var(--ink-2);width:96px;flex:none;font-size:11.5px;line-height:1.2}
+.matrow input{flex:1;min-width:0}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <h1>BMK-Export</h1>
+    <p class="sub">Betriebsmittelkennzeichnungen aus dem Elektroschema-PDF auslesen, prüfen und als Beschriftungsdatei für die Phoenix-Markierungssoftware und den Thermotransferdrucker ausgeben.</p>
+    <div class="strip-wrap">
+      <div class="strip empty" id="preview">Noch keine Marker – Schema-PDF laden oder Kennzeichnungen einfügen.</div>
+      <div class="counts">
+        <div class="count"><b id="cBmk">0</b><span>Kennzeichnungen</span></div>
+        <div class="count"><b id="cMarker">0</b><span>Marker gesamt</span></div>
+        <div class="count"><b id="cPages">0</b><span>Seiten gelesen</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ linke Spalte ============ -->
+  <div>
+    <section class="panel">
+      <h2>Quelle</h2>
+      <div class="body">
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="PDF auswählen">
+          <svg width="46" height="30" viewBox="0 0 46 30" fill="none" aria-hidden="true">
+            <rect x="1" y="1" width="44" height="28" rx="1.5" stroke="#8C978F" stroke-dasharray="3 3"/>
+            <rect x="8" y="9" width="12" height="12" fill="#EFEADB" stroke="#B9AE92"/>
+            <rect x="26" y="9" width="12" height="12" fill="#EFEADB" stroke="#B9AE92"/>
+            <path d="M14 9v12M32 9v12" stroke="#B9AE92"/>
+            <path d="M20 15h6" stroke="#8C978F"/>
+          </svg>
+          <b>Schema-PDF hier ablegen</b>
+          <small>oder klicken – mehrere Dateien möglich</small>
+          <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+        </div>
+        <div class="bar" id="bar"><i></i></div>
+        <ul class="filelist" id="filelist"></ul>
+        <div id="srcmsg"></div>
+
+        <div class="field" style="margin-top:14px">
+          <label class="lbl" for="paste">Kennzeichnungen direkt einfügen (eine pro Zeile oder beliebiger Text)</label>
+          <textarea id="paste" placeholder="-1015X2&#10;-1010F2"></textarea>
+          <button class="btn wide" id="btnPaste" style="margin-top:6px">Text auswerten</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Suchmuster</h2>
+      <div class="body">
+        <div class="field">
+          <label class="lbl" for="preset">Aufbau der BMK</label>
+          <select id="preset">
+            <option value="std">Anlage + Kennbuchstabe + Nummer &nbsp;(-1015X2)</option>
+            <option value="dot">wie oben, mit Unternummer &nbsp;(-1015X2.1)</option>
+            <option value="short">ohne Anlagennummer &nbsp;(-X2, -K1)</option>
+            <option value="all">alle Varianten</option>
+            <option value="custom">eigener regulärer Ausdruck</option>
+          </select>
+        </div>
+        <div class="field" id="customWrap" hidden>
+          <label class="lbl" for="customRe">Regulärer Ausdruck</label>
+          <input type="text" class="mono" id="customRe" value="-\d{2,6}[A-Z]{1,3}\d{1,3}">
+        </div>
+        <label class="check"><input type="checkbox" id="optDash" checked><span>führendes Minus verlangen</span></label>
+        <label class="check"><input type="checkbox" id="optDedup" checked><span>Mehrfachnennungen zusammenfassen</span></label>
+        <label class="check"><input type="checkbox" id="optKeepDash" checked><span>Minus in der Beschriftung behalten</span></label>
+        <button class="btn wide" id="btnRescan" style="margin-top:10px">Erneut auswerten</button>
+        <p class="hint">Gefunden wird nur Text, der im PDF als Text vorliegt. Gescannte Pläne liefern keine Treffer.</p>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Material je Gerätegruppe</h2>
+      <div class="body" id="materials"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Export</h2>
+      <div class="body">
+        <div class="field">
+          <label class="lbl" for="proj">Projekt / Auftrag</label>
+          <input type="text" id="proj" placeholder="z. B. 25-118 Lüftung UG">
+        </div>
+        <div class="field">
+          <label class="lbl" for="expMode">Zeilenaufbau</label>
+          <select id="expMode">
+            <option value="expand">eine Zeile je Marker (Anzahl ausmultipliziert)</option>
+            <option value="qty">eine Zeile je BMK mit Mengenspalte (Klemmenblöcke bleiben aufgelöst)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="enc">Zeichensatz</label>
+          <select id="enc">
+            <option value="ansi">ANSI / Windows-1252 (Phoenix-Import)</option>
+            <option value="utf8bom">UTF-8 mit BOM (Excel)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label class="lbl" for="sep">Trennzeichen</label>
+          <select id="sep">
+            <option value=";">Semikolon</option>
+            <option value="&#9;">Tabulator</option>
+            <option value=",">Komma</option>
+          </select>
+        </div>
+        <label class="check"><input type="checkbox" id="optHeader" checked><span>Kopfzeile mit Spaltennamen</span></label>
+        <label class="check"><input type="checkbox" id="optSplit"><span>je Material eine eigene Datei</span></label>
+        <button class="btn primary wide" id="btnCsv" style="margin-top:10px">CSV für Markierungssoftware</button>
+        <button class="btn wide" id="btnTxt" style="margin-top:8px">TXT – nur Beschriftungstext</button>
+        <button class="btn wide" id="btnJson" style="margin-top:8px">JSON – vollständige Liste</button>
+        <p class="hint">Die Datei wird in PROJECT complete bzw. MARKING system über den Datenimport eingelesen, dem Markierungsmaterial zugewiesen und von dort an den Drucker übergeben.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ rechte Spalte ============ -->
+  <section class="panel">
+    <h2>Beschriftungsliste <span id="hSel" style="font-weight:400;color:var(--ink-2)"></span></h2>
+    <div class="toolbar">
+      <input type="text" id="search" placeholder="suchen …">
+      <button class="btn sm" id="btnAllOn">alle aktiv</button>
+      <button class="btn sm" id="btnAllOff">alle inaktiv</button>
+      <button class="btn sm" id="btnQtyHits">Anzahl = Vorkommen</button>
+      <button class="btn sm" id="btnQty1">Anzahl = 1</button>
+      <button class="btn sm" id="btnAdd">Zeile hinzufügen</button>
+      <button class="btn sm" id="btnClear" style="margin-left:auto">Liste leeren</button>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34px"></th>
+            <th>BMK</th>
+            <th>Gerät</th>
+            <th>Zeile 1</th>
+            <th>Zeile 2</th>
+            <th style="width:130px" title="Wie die Marker dieser Kennzeichnung entstehen">Folge</th>
+            <th style="width:78px">Anzahl</th>
+            <th>Material</th>
+            <th>Seiten</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty-state" id="emptyState"><b>Noch nichts ausgewertet</b>Schema-PDF laden oder Kennzeichnungen einfügen.</div>
+    </div>
+    <div class="tblfoot">
+      <span id="footLeft">–</span>
+      <span id="footRight"></span>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+   Gerätekennbuchstaben nach DIN EN 81346-2
+   ============================================================ */
+const LETTERS = {
+  A:"Baugruppe / Steuerung", B:"Sensor / Messumformer", C:"Speicher / Kondensator",
+  D:"Speicherbaustein", E:"Leuchte / Heizung", F:"Sicherung / Schutzorgan",
+  G:"Versorgung / Netzteil", H:"Meldeeinrichtung", K:"Relais / Schütz",
+  L:"Drossel / Induktivität", M:"Motor / Antrieb", N:"Regler / Verstärker",
+  P:"Messgerät / Anzeige", Q:"Leistungsschalter", R:"Widerstand",
+  S:"Schalter / Taster", T:"Transformator", U:"Umrichter / Wandler",
+  V:"Halbleiter / Diode", W:"Leitung / Bus", X:"Klemme / Steckverbinder",
+  Y:"Ventil / Magnetantrieb", Z:"Filter / Entstörung"
+};
+/* Markierungsmaterial – UCT-Serie ist die für THERMOMARK CARD / PRIME bedruckbare.
+   Liste ist frei erweiterbar, massgebend bleibt die Materialauswahl in der Software. */
+const MATERIALS = [
+  ["Klemmenmarker, Karte", ["UCT-TM 5","UCT-TM 6","UCT-TM 8","UCT-TM 10","UCT-TM 12","UCT-TMF 5"]],
+  ["Gerätemarkierer, Karte", ["UCT-EM (5X10)","UCT-EM (6X10)","UCT-EM (7X10)"]],
+  ["Leiter und Kabel", ["UCT-WMT","US-EMT (20X8)"]]
+];
+const MAT_DEFAULT = {
+  X:"UCT-TM 5",
+  W:"UCT-WMT",
+  _:"UCT-EM (7X10)"
+};
+const CUSTOM_MATS = [];
+
+function matOptions(current){
+  let html = "";
+  const known = new Set();
+  for (const [grp, list] of MATERIALS){
+    html += '<optgroup label="' + escapeHtml(grp) + '">';
+    for (const m of list){ known.add(m); html += '<option' + (m === current ? " selected" : "") + '>' + escapeHtml(m) + '</option>'; }
+    html += '</optgroup>';
+  }
+  const extra = CUSTOM_MATS.filter(m => !known.has(m));
+  if (current && !known.has(current) && !extra.includes(current)) extra.push(current);
+  if (extra.length){
+    html += '<optgroup label="eigene">';
+    for (const m of extra) html += '<option' + (m === current ? " selected" : "") + '>' + escapeHtml(m) + '</option>';
+    html += '</optgroup>';
+  }
+  html += '<option value="__custom">eigene Bezeichnung …</option>';
+  return html;
+}
+function askCustomMat(sel, fallback){
+  const v = prompt("Materialbezeichnung eingeben, z. B. UCT-TM 6", fallback || "");
+  if (v && v.trim()){
+    const t = v.trim();
+    if (!CUSTOM_MATS.includes(t)) CUSTOM_MATS.push(t);
+    return t;
+  }
+  return fallback;
+}
+
+const MODES = { fix:"gleiche Marker", seq:"Zeile 2 = 1…n", block:"Klemmenfolge" };
+function markerCount(r){
+  return r.mode === "block" ? Math.max(1, r.labels.length) : Math.max(1, r.qty);
+}
+
+/* ============================================================
+   Zustand
+   ============================================================ */
+const S = {
+  rows: new Map(),      // bmk -> Zeile
+  files: [],            // {name, pages, chars}
+  pages: 0,
+  filterLetters: new Set(),
+  search: "",
+  materials: {},        // Buchstabe -> Material
+  expanded: new Set()   // aufgeklappte Klemmenblöcke
+};
+
+const $ = id => document.getElementById(id);
+
+/* ============================================================
+   PDF-Text lesen
+   ============================================================ */
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+function normalize(s){
+  return s.replace(/[\u2010-\u2015\u2212\uFE63\uFF0D]/g, "-")
+          .replace(/[\u00A0\u2007\u202F]/g, " ")
+          .replace(/[\u200B-\u200D\uFEFF]/g, "");
+}
+
+/* Textelemente einer Seite zu Zeilen zusammensetzen – auch für gedrehten Text,
+   damit an Trennstellen zerlegte Kennzeichnungen wieder zusammenfinden. */
+function itemsToLines(items){
+  const groups = new Map();
+  for (const it of items){
+    if (!it.str) continue;
+    const t = it.transform;
+    const ang = Math.atan2(t[1], t[0]);
+    let rot = Math.round(ang / (Math.PI/2));
+    rot = ((rot % 4) + 4) % 4;
+    let along, cross;
+    if (rot === 0){ along = t[4];  cross = t[5]; }
+    else if (rot === 1){ along = t[5];  cross = -t[4]; }
+    else if (rot === 2){ along = -t[4]; cross = -t[5]; }
+    else { along = -t[5]; cross = t[4]; }
+    const key = rot + "|" + Math.round(cross / 2.2);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({ str: it.str, a: along, w: it.width || 0 });
+  }
+  const lines = [];
+  for (const arr of groups.values()){
+    arr.sort((x,y) => x.a - y.a);
+    let out = "", end = null;
+    for (const it of arr){
+      if (end !== null){
+        const gap = it.a - end;
+        if (gap > 1.1) out += " ";
+      }
+      out += it.str;
+      end = it.a + it.w;
+    }
+    lines.push(out);
+  }
+  return lines;
+}
+
+async function readPdf(file, onPage){
+  const buf = await file.arrayBuffer();
+  const doc = await pdfjsLib.getDocument({ data: buf }).promise;
+  const pages = [];
+  for (let p = 1; p <= doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const tc = await page.getTextContent();
+    pages.push(normalize(itemsToLines(tc.items).join("\n")));
+    page.cleanup();
+    if (onPage) onPage(p, doc.numPages);
+  }
+  return pages;
+}
+
+/* ============================================================
+   Muster und Zerlegung
+   ============================================================ */
+function buildRegex(){
+  const dash = $("optDash").checked ? "-" : "-?";
+  const preset = $("preset").value;
+  let src;
+  if (preset === "custom"){
+    src = $("customRe").value.trim();
+    if (!src) src = dash + "\\d{2,6}[A-Z]{1,3}\\d{1,3}";
+  } else if (preset === "std"){
+    src = dash + "\\d{2,6}[A-Z]{1,3}\\d{1,3}";
+  } else if (preset === "dot"){
+    src = dash + "\\d{2,6}[A-Z]{1,3}\\d{1,3}(?:[.:]\\d{1,3})?";
+  } else if (preset === "short"){
+    src = dash + "[A-Z]{1,3}\\d{1,3}(?:[.:]\\d{1,3})?";
+  } else {
+    src = dash + "(?:\\d{2,6})?[A-Z]{1,3}\\d{1,3}(?:[.:]\\d{1,3})?";
+  }
+  try { return new RegExp("(?:^|[^A-Za-z0-9.:])(" + src + ")(?![A-Za-z0-9])", "g"); }
+  catch(e){ return null; }
+}
+
+function splitBmk(bmk){
+  const m = /^-?(\d*)([A-Z]{1,3})(\d{1,3})(?:[.:](\d{1,3}))?$/.exec(bmk);
+  if (!m) return { anlage:"", letter:"?", num:0, sub:0 };
+  return { anlage:m[1]||"", letter:m[2], num:parseInt(m[3],10)||0, sub:m[4]?parseInt(m[4],10):0 };
+}
+
+function materialFor(letter){
+  if (S.materials[letter]) return S.materials[letter];
+  return S.materials._ || MAT_DEFAULT._;
+}
+
+function addHit(raw, page, fileName){
+  let bmk = raw.trim();
+  if (!$("optKeepDash").checked) bmk = bmk.replace(/^-/, "");
+  const key = bmk.toUpperCase();
+  let r = S.rows.get(key);
+  if (!r){
+    const p = splitBmk(bmk.replace(/^-/, "-"));
+    r = {
+      bmk, ...p,
+      hits: 0, pages: new Set(), files: new Set(),
+      qty: 1, line1: bmk, line2: "",
+      mode: p.letter === "X" ? "block" : "fix",
+      labels: [bmk],
+      material: materialFor(p.letter),
+      active: true, manual: false
+    };
+    S.rows.set(key, r);
+  }
+  r.hits++;
+  if (page) r.pages.add(page);
+  if (fileName) r.files.add(fileName);
+  return r;
+}
+
+function scanText(text, page, fileName){
+  const re = buildRegex();
+  if (!re) return 0;
+  let m, n = 0;
+  while ((m = re.exec(text)) !== null){
+    addHit(m[1], page, fileName);
+    n++;
+    if (m.index === re.lastIndex) re.lastIndex++;
+  }
+  return n;
+}
+
+/* ============================================================
+   Dateien verarbeiten
+   ============================================================ */
+async function handleFiles(fileList){
+  const files = Array.from(fileList).filter(f => /\.pdf$/i.test(f.name) || f.type === "application/pdf");
+  $("srcmsg").innerHTML = "";
+  if (!files.length){
+    $("srcmsg").innerHTML = '<div class="err">Keine PDF-Datei erkannt. Bitte ein Schema als PDF wählen.</div>';
+    return;
+  }
+  if (!window.pdfjsLib){
+    $("srcmsg").innerHTML = '<div class="err">PDF-Bibliothek nicht geladen. Die Seite braucht beim ersten Aufruf eine Internetverbindung.</div>';
+    return;
+  }
+  $("bar").classList.add("on");
+  let poor = 0;
+  for (const f of files){
+    try{
+      const pages = await readPdf(f, (p, total) => {
+        $("bar").firstElementChild.style.width = Math.round(p/total*100) + "%";
+      });
+      let chars = 0, hits = 0;
+      pages.forEach((txt, i) => {
+        chars += txt.length;
+        hits += scanText(txt, String(i+1), f.name);
+      });
+      S.pages += pages.length;
+      S.files.push({ name:f.name, pages:pages.length, hits, chars });
+      if (chars / Math.max(1, pages.length) < 40) poor++;
+    }catch(err){
+      $("srcmsg").innerHTML += '<div class="err">' + f.name + ' konnte nicht gelesen werden: ' + err.message + '</div>';
+    }
+  }
+  $("bar").classList.remove("on");
+  $("bar").firstElementChild.style.width = "0%";
+  if (poor){
+    $("srcmsg").innerHTML += '<div class="warn">In ' + poor + ' Datei(en) steckt kaum Text. Vermutlich ein gescanntes Schema – dort findet die Auswertung nichts. Kennzeichnungen bitte einfügen oder das PDF aus dem CAD neu ausgeben.</div>';
+  }
+  renderFiles();
+  renderMaterials();
+  render();
+}
+
+function renderFiles(){
+  $("filelist").innerHTML = S.files.map(f =>
+    '<li><span>' + escapeHtml(f.name) + '</span><span>' + f.pages + ' S. · ' + f.hits + ' Treffer</span></li>'
+  ).join("");
+}
+
+/* ============================================================
+   Tabelle
+   ============================================================ */
+function sortRows(rows){
+  return rows.sort((a,b) =>
+    (parseInt(a.anlage||"0",10) - parseInt(b.anlage||"0",10)) ||
+    a.letter.localeCompare(b.letter) ||
+    (a.num - b.num) || (a.sub - b.sub) ||
+    a.bmk.localeCompare(b.bmk)
+  );
+}
+function allRows(){ return sortRows(Array.from(S.rows.values())); }
+function visibleRows(){
+  const q = S.search.toLowerCase();
+  return allRows().filter(r =>
+    (!S.filterLetters.size || S.filterLetters.has(r.letter)) &&
+    (!q || r.bmk.toLowerCase().includes(q) || (r.line2||"").toLowerCase().includes(q) || r.material.toLowerCase().includes(q))
+  );
+}
+function activeRows(){ return allRows().filter(r => r.active); }
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+}
+
+function render(){
+  const rows = visibleRows();
+  $("emptyState").style.display = S.rows.size ? "none" : "block";
+  $("tbody").innerHTML = rows.map(r => {
+    const k = escapeHtml(r.bmk.toUpperCase());
+    const block = r.mode === "block";
+    const open = S.expanded.has(r.bmk.toUpperCase());
+    let html = '<tr class="' + (r.active ? "" : "off") + '" data-k="' + k + '">' +
+      '<td><input type="checkbox" data-f="active"' + (r.active ? " checked" : "") + '></td>' +
+      '<td class="bmk">' +
+        (block ? '<button class="exp' + (open ? " on" : "") + '" data-exp title="Klemmenfolge bearbeiten">' + (open ? "−" : "+") + '</button>' : '') +
+        escapeHtml(r.bmk) + '</td>' +
+      '<td>' + escapeHtml(LETTERS[r.letter] || "–") + '</td>' +
+      '<td><input type="text" data-f="line1" value="' + escapeHtml(r.line1) + '"' + (block ? ' disabled title="wird aus der Klemmenfolge gebildet"' : '') + '></td>' +
+      '<td><input type="text" data-f="line2" value="' + escapeHtml(r.line2) + '"' + (block ? ' disabled' : '') + '></td>' +
+      '<td><select data-f="mode">' +
+        Object.keys(MODES).map(m => '<option value="' + m + '"' + (r.mode === m ? " selected" : "") + '>' + MODES[m] + '</option>').join("") +
+      '</select></td>' +
+      '<td class="num"><input type="number" min="1" max="999" data-f="qty" value="' + markerCount(r) + '"' + (block ? " disabled" : "") + '></td>' +
+      '<td><select data-f="material">' + matOptions(r.material) + '</select></td>' +
+      '<td class="pages" title="' + escapeHtml(Array.from(r.pages).join(", ")) + '">' +
+        (r.manual ? "manuell" : escapeHtml(Array.from(r.pages).slice(0,6).join(", ")) + (r.pages.size > 6 ? " …" : "")) +
+      '</td></tr>';
+    if (block && open) html += detailRow(r, k);
+    return html;
+  }).join("");
+
+  renderChips();
+  renderPreview();
+
+  const act = activeRows();
+  const markers = act.reduce((s,r) => s + markerCount(r), 0);
+  $("cBmk").textContent = S.rows.size;
+  $("cMarker").textContent = markers;
+  $("cPages").textContent = S.pages;
+  $("hSel").textContent = S.rows.size ? "– " + rows.length + " von " + S.rows.size + " angezeigt" : "";
+  $("footLeft").textContent = act.length + " aktiv · " + markers + " Marker · " +
+    new Set(act.map(r => r.material)).size + " Material(ien)";
+  $("footRight").textContent = S.files.length ? S.files.length + " Datei(en), " + S.pages + " Seiten" : "";
+}
+
+const QUICK = ["N","PE","L","L1","L2","L3","M+","M-","+","-","24V","0V","S","GND","1","2"];
+
+function detailRow(r, k){
+  return '<tr class="detail" data-k="' + k + '"><td></td><td colspan="8">' +
+    '<div class="seqedit">' +
+      '<textarea data-f="labels" spellcheck="false" aria-label="Klemmenfolge">' +
+        escapeHtml(r.labels.join("\n")) + '</textarea>' +
+      '<div class="seqcol">' +
+        '<div class="quick">' +
+          QUICK.map(t => '<button data-add="' + escapeHtml(t) + '">' + escapeHtml(t) + '</button>').join("") +
+          '<button class="txt" data-fill="num">1…n anhängen</button>' +
+          '<button class="txt" data-fill="reset">nur BMK</button>' +
+        '</div>' +
+        '<p class="hint" style="margin:0">Eine Zeile pro Klemme. Die erste Zeile trägt die Blocknummer, danach folgen die Klemmenbezeichnungen. ' +
+        '<span class="mono">' + escapeHtml(r.bmk) + '</span> · <span data-cnt>' + r.labels.length + '</span> Marker.</p>' +
+        '<div class="seqprev" data-prev>' + r.labels.slice(0,12).map(t =>
+          '<div class="marker"><span class="l1">' + escapeHtml(t) + '</span></div>').join("") + '</div>' +
+      '</div>' +
+    '</div></td></tr>';
+}
+
+function renderChips(){
+  const counts = {};
+  for (const r of S.rows.values()) counts[r.letter] = (counts[r.letter] || 0) + 1;
+  const keys = Object.keys(counts).sort();
+  $("chips").innerHTML = keys.length
+    ? keys.map(l =>
+        '<button class="chip ' + (S.filterLetters.has(l) ? "on" : "") + '" data-l="' + l + '">' +
+        '<b>' + l + '</b> ' + escapeHtml((LETTERS[l] || "unbekannt").split(" / ")[0]) + ' <i>' + counts[l] + '</i></button>'
+      ).join("")
+    : '<span style="color:var(--ink-2);font-size:12.5px">Gerätegruppen erscheinen nach der Auswertung.</span>';
+}
+
+function renderPreview(){
+  const list = [];
+  for (const r of activeRows()){
+    for (const m of rowMarkers(r)){
+      list.push({ l1: m.line1, l2: m.line2 });
+      if (list.length >= 9) break;
+    }
+    if (list.length >= 9) break;
+  }
+  const el = $("preview");
+  if (!list.length){
+    el.className = "strip empty";
+    el.textContent = "Noch keine Marker – Schema-PDF laden oder Kennzeichnungen einfügen.";
+    return;
+  }
+  el.className = "strip";
+  el.innerHTML = list.map(m =>
+    '<div class="marker"><span class="l1">' + escapeHtml(m.l1) + '</span>' +
+    (m.l2 ? '<span class="l2">' + escapeHtml(m.l2) + '</span>' : '') + '</div>'
+  ).join("");
+}
+
+/* Eingaben in der Tabelle */
+function updateCounters(){
+  const act = activeRows();
+  const markers = act.reduce((s,x) => s + markerCount(x), 0);
+  $("cMarker").textContent = markers;
+  $("footLeft").textContent = act.length + " aktiv · " + markers + " Marker · " +
+    new Set(act.map(x => x.material)).size + " Material(ien)";
+  renderPreview();
+}
+
+$("tbody").addEventListener("input", e => {
+  const inp = e.target;
+  const f = inp.dataset.f;
+  if (!f) return;
+  const tr = inp.closest("tr");
+  const r = S.rows.get(tr.dataset.k);
+  if (!r) return;
+  if (f === "qty") r.qty = Math.max(1, Math.min(999, parseInt(inp.value,10) || 1));
+  else if (f === "active") r.active = inp.checked;
+  else if (f === "labels"){
+    r.labels = inp.value.split("\n").map(s => s.trim()).filter(s => s !== "");
+    if (!r.labels.length) r.labels = [r.bmk];
+    r.line1 = r.labels[0];
+    const main = tr.previousElementSibling;
+    if (main){
+      const q = main.querySelector('input[data-f="qty"]');
+      if (q) q.value = r.labels.length;
+      const l1 = main.querySelector('input[data-f="line1"]');
+      if (l1) l1.value = r.labels[0];
+    }
+    const cnt = tr.querySelector("[data-cnt]");
+    if (cnt) cnt.textContent = r.labels.length;
+    const prev = tr.querySelector("[data-prev]");
+    if (prev) prev.innerHTML = r.labels.slice(0,12).map(t =>
+      '<div class="marker"><span class="l1">' + escapeHtml(t) + '</span></div>').join("");
+  }
+  else r[f] = inp.value;
+  if (f === "active") tr.classList.toggle("off", !r.active);
+  updateCounters();
+});
+
+$("tbody").addEventListener("change", e => {
+  const el = e.target;
+  const f = el.dataset.f;
+  if (!f) return;
+  const r = S.rows.get(el.closest("tr").dataset.k);
+  if (!r) return;
+  if (f === "material"){
+    if (el.value === "__custom") r.material = askCustomMat(el, r.material);
+    else r.material = el.value;
+    render();
+  } else if (f === "mode"){
+    r.mode = el.value;
+    if (r.mode === "block"){
+      if (!r.labels || !r.labels.length) r.labels = [r.bmk];
+      S.expanded.add(r.bmk.toUpperCase());
+    } else {
+      S.expanded.delete(r.bmk.toUpperCase());
+      r.line1 = r.bmk;
+    }
+    render();
+  } else if (f === "active"){
+    render();
+  }
+});
+
+$("tbody").addEventListener("click", e => {
+  const tr = e.target.closest("tr");
+  if (!tr) return;
+  const r = S.rows.get(tr.dataset.k);
+  if (!r) return;
+
+  if (e.target.closest("[data-exp]")){
+    const k = r.bmk.toUpperCase();
+    S.expanded.has(k) ? S.expanded.delete(k) : S.expanded.add(k);
+    render();
+    return;
+  }
+  const add = e.target.closest("[data-add]");
+  const fill = e.target.closest("[data-fill]");
+  if (!add && !fill) return;
+  if (add) r.labels = r.labels.concat(add.dataset.add);
+  else if (fill.dataset.fill === "reset") r.labels = [r.bmk];
+  else {
+    const n = parseInt(prompt("Wie viele fortlaufende Nummern anhängen?", "8"), 10);
+    if (!n || n < 1) return;
+    for (let i = 1; i <= Math.min(n, 200); i++) r.labels.push(String(i));
+  }
+  r.line1 = r.labels[0];
+  render();
+});
+$("chips").addEventListener("click", e => {
+  const b = e.target.closest(".chip");
+  if (!b) return;
+  const l = b.dataset.l;
+  S.filterLetters.has(l) ? S.filterLetters.delete(l) : S.filterLetters.add(l);
+  render();
+});
+
+/* ============================================================
+   Materialzuordnung
+   ============================================================ */
+function renderMaterials(){
+  const letters = Array.from(new Set(Array.from(S.rows.values()).map(r => r.letter))).sort();
+  const shown = letters.length ? letters : ["X","F","K","Q"];
+  $("materials").innerHTML = shown.map(l =>
+    '<div class="matrow"><b>' + l + '</b><small>' + escapeHtml((LETTERS[l] || "unbekannt").split(" / ")[0]) + '</small>' +
+    '<select data-l="' + l + '">' + matOptions(S.materials[l] || MAT_DEFAULT[l] || MAT_DEFAULT._) + '</select></div>'
+  ).join("") +
+  '<button class="btn wide sm" id="btnApplyMat" style="margin-top:8px">Material auf Liste übertragen</button>' +
+  '<p class="hint">Vorgabe ist die UCT-Serie, weil diese auf dem THERMOMARK bedruckbar ist. Eigene Bezeichnungen lassen sich ergänzen; massgebend bleibt die Materialauswahl in der Markierungssoftware.</p>';
+
+  $("materials").querySelectorAll("select[data-l]").forEach(sel => {
+    sel.addEventListener("change", () => {
+      const l = sel.dataset.l;
+      if (sel.value === "__custom"){
+        S.materials[l] = askCustomMat(sel, S.materials[l] || MAT_DEFAULT[l] || MAT_DEFAULT._);
+        renderMaterials();
+      } else {
+        S.materials[l] = sel.value;
+      }
+    });
+  });
+  $("btnApplyMat").addEventListener("click", () => {
+    for (const r of S.rows.values()) r.material = materialFor(r.letter);
+    render();
+  });
+}
+
+/* ============================================================
+   Export
+   ============================================================ */
+function marker(r, line1, line2, pos){
+  return {
+    bmk: r.bmk, line1, line2: line2 || "", pos, qty: 1,
+    material: r.material, typ: LETTERS[r.letter] || "", letter: r.letter,
+    pages: Array.from(r.pages).join(" "), files: Array.from(r.files).join(" ")
+  };
+}
+function rowMarkers(r){
+  const out = [];
+  if (r.mode === "block"){
+    r.labels.forEach((t, i) => out.push(marker(r, t, "", i + 1)));
+  } else {
+    const n = Math.max(1, r.qty);
+    for (let i = 1; i <= n; i++) out.push(marker(r, r.line1, r.mode === "seq" && n > 1 ? String(i) : r.line2, i));
+  }
+  return out;
+}
+function expand(){
+  const out = [];
+  for (const r of activeRows()) out.push(...rowMarkers(r));
+  return out;
+}
+/* Klemmenblöcke werden immer aufgelöst – die Folge lässt sich nicht in eine Menge fassen. */
+function collapsed(){
+  const out = [];
+  for (const r of activeRows()){
+    if (r.mode === "block") out.push(...rowMarkers(r));
+    else out.push({
+      bmk: r.bmk, line1: r.line1, line2: r.mode === "seq" ? "1…" + r.qty : r.line2,
+      pos: "", qty: r.qty, material: r.material, typ: LETTERS[r.letter] || "",
+      letter: r.letter, pages: Array.from(r.pages).join(" "), files: Array.from(r.files).join(" ")
+    });
+  }
+  return out;
+}
+function dataset(){ return $("expMode").value === "expand" ? expand() : collapsed(); }
+
+const COLS = [
+  ["bmk","Kennzeichnung"], ["line1","Zeile 1"], ["line2","Zeile 2"], ["pos","Pos"],
+  ["qty","Anzahl"], ["material","Material"], ["typ","Geraeteart"], ["pages","Seite"]
+];
+
+function toCsv(items, sep, header){
+  const esc = v => {
+    const s = String(v ?? "");
+    return (s.includes(sep) || s.includes('"') || s.includes("\n")) ? '"' + s.replace(/"/g,'""') + '"' : s;
+  };
+  const lines = [];
+  if (header) lines.push(COLS.map(c => esc(c[1])).join(sep));
+  for (const it of items) lines.push(COLS.map(c => esc(it[c[0]])).join(sep));
+  return lines.join("\r\n") + "\r\n";
+}
+
+const CP1252 = {"€":128,"‚":130,"ƒ":131,"„":132,"…":133,"†":134,"‡":135,"ˆ":136,"‰":137,"Š":138,"‹":139,"Œ":140,"Ž":142,"‘":145,"’":146,"“":147,"”":148,"•":149,"–":150,"—":151,"˜":152,"™":153,"š":154,"›":155,"œ":156,"ž":158,"Ÿ":159};
+function encode(str, mode){
+  if (mode === "utf8bom"){
+    const enc = new TextEncoder().encode(str);
+    const out = new Uint8Array(enc.length + 3);
+    out.set([0xEF,0xBB,0xBF]); out.set(enc, 3);
+    return out;
+  }
+  const out = new Uint8Array(str.length);
+  for (let i = 0; i < str.length; i++){
+    const c = str.charCodeAt(i);
+    out[i] = c < 256 ? c : (CP1252[str[i]] ?? 63);
+  }
+  return out;
+}
+function download(name, content, mime, mode){
+  const data = typeof content === "string" ? encode(content, mode || "utf8bom") : content;
+  const url = URL.createObjectURL(new Blob([data], { type: mime }));
+  const a = document.createElement("a");
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 500);
+}
+function baseName(){
+  const p = ($("proj").value || "BMK").replace(/[^\wÄÖÜäöüß .+-]/g, "").trim().replace(/\s+/g,"_");
+  return p || "BMK";
+}
+function guard(){
+  if (!activeRows().length){ alert("Keine aktive Kennzeichnung in der Liste."); return false; }
+  return true;
+}
+
+$("btnCsv").addEventListener("click", () => {
+  if (!guard()) return;
+  const sep = $("sep").value, enc = $("enc").value, hdr = $("optHeader").checked;
+  const items = dataset();
+  if ($("optSplit").checked){
+    const groups = {};
+    items.forEach(i => (groups[i.material] = groups[i.material] || []).push(i));
+    Object.keys(groups).forEach((mat, idx) => {
+      const safe = mat.replace(/[^\w.+-]/g, "_");
+      setTimeout(() => download(baseName() + "_" + safe + ".csv", toCsv(groups[mat], sep, hdr), "text/csv", enc), idx * 350);
+    });
+  } else {
+    download(baseName() + "_Beschriftung.csv", toCsv(items, sep, hdr), "text/csv", enc);
+  }
+});
+$("btnTxt").addEventListener("click", () => {
+  if (!guard()) return;
+  const txt = dataset().map(i => i.line2 ? i.line1 + "\t" + i.line2 : i.line1).join("\r\n") + "\r\n";
+  download(baseName() + "_Beschriftung.txt", txt, "text/plain", $("enc").value);
+});
+$("btnJson").addEventListener("click", () => {
+  if (!guard()) return;
+  const json = JSON.stringify({
+    projekt: $("proj").value, erstellt: new Date().toISOString(),
+    dateien: S.files.map(f => ({ name:f.name, seiten:f.pages, treffer:f.hits })),
+    positionen: collapsed()
+  }, null, 2);
+  download(baseName() + "_Beschriftung.json", json, "application/json", "utf8bom");
+});
+
+/* ============================================================
+   Bedienung
+   ============================================================ */
+const drop = $("drop");
+drop.addEventListener("click", () => $("file").click());
+drop.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " "){ e.preventDefault(); $("file").click(); } });
+$("file").addEventListener("change", e => { handleFiles(e.target.files); e.target.value = ""; });
+["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { if (e.dataTransfer && e.dataTransfer.files) handleFiles(e.dataTransfer.files); });
+window.addEventListener("dragover", e => e.preventDefault());
+window.addEventListener("drop", e => e.preventDefault());
+
+$("preset").addEventListener("change", () => {
+  $("customWrap").hidden = $("preset").value !== "custom";
+});
+$("btnPaste").addEventListener("click", () => {
+  const t = normalize($("paste").value);
+  if (!t.trim()) return;
+  const before = S.rows.size;
+  const n = scanText(t, "", "Eingabe");
+  for (const r of S.rows.values()) if (!r.pages.size) r.manual = true;
+  if (!n) $("srcmsg").innerHTML = '<div class="warn">Im eingefügten Text passt nichts zum gewählten Suchmuster.</div>';
+  else $("srcmsg").innerHTML = "";
+  renderMaterials(); render();
+  if (S.rows.size > before) $("paste").value = "";
+});
+$("btnRescan").addEventListener("click", () => {
+  if (!S.files.length && !$("paste").value.trim()){
+    alert("Zum erneuten Auswerten die PDF nochmals laden oder Text einfügen – die Dateien bleiben nicht im Speicher.");
+    return;
+  }
+  if ($("paste").value.trim()) $("btnPaste").click();
+});
+$("search").addEventListener("input", e => { S.search = e.target.value; render(); });
+$("btnAllOn").addEventListener("click", () => { visibleRows().forEach(r => r.active = true); render(); });
+$("btnAllOff").addEventListener("click", () => { visibleRows().forEach(r => r.active = false); render(); });
+$("btnQtyHits").addEventListener("click", () => {
+  visibleRows().forEach(r => { if (r.mode !== "block") r.qty = Math.max(1, r.hits); });
+  render();
+});
+$("btnQty1").addEventListener("click", () => {
+  visibleRows().forEach(r => { if (r.mode !== "block") r.qty = 1; });
+  render();
+});
+$("btnAdd").addEventListener("click", () => {
+  const v = prompt("Kennzeichnung eingeben, z. B. -1015X2");
+  if (!v) return;
+  const r = addHit(normalize(v.trim()), "", "manuell");
+  r.manual = true;
+  renderMaterials(); render();
+});
+$("btnClear").addEventListener("click", () => {
+  if (!S.rows.size || !confirm("Liste vollständig leeren?")) return;
+  S.rows.clear(); S.files = []; S.pages = 0; S.filterLetters.clear(); S.expanded.clear();
+  renderFiles(); renderMaterials(); render();
+});
+
+renderMaterials();
+render();
+</script>
+</body>
+</html>
